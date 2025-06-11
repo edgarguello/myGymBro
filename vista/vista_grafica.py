@@ -36,6 +36,7 @@ class VistaGrafica(tk.Tk):
     def mostrar_seleccionar(self):
         f = self.frames["SeleccionFrame"]
         f.actualizar_lista(self.controlador.obtener_rutinas())
+        f.on_eliminar = self.eliminar_rutina
         self.normalizar()
         self._show_frame("SeleccionFrame")
 
@@ -58,6 +59,10 @@ class VistaGrafica(tk.Tk):
         frame = self.frames[name]
         frame.grid()
         frame.tkraise()
+    
+    def eliminar_rutina(self, rutina):
+        self.controlador.eliminar_rutina(rutina)
+        self.mostrar_seleccionar()  # Refresca la lista
 
     def maximizar(self):
         try:
@@ -92,15 +97,25 @@ class SeleccionFrame(tk.Frame):
         tk.Label(self, text="Seleccionar Rutina", font=('Arial', 18)).pack(pady=10)
         self.lst = tk.Listbox(self)
         self.lst.pack(fill='both', expand=True, padx=20)
+
+        self.detalle = tk.Text(self, height=6, state='disabled')
+        self.detalle.pack(padx=20, pady=5, fill='x')
+
+        self.lst.bind("<<ListboxSelect>>", lambda e: self._mostrar_detalle())
+
         btn = tk.Button(self, text="Realizar", command=lambda: self._realizar(controller))
         btn.pack(pady=10)
+        btn_eliminar = tk.Button(self, text="Eliminar", command=self._eliminar)
+        btn_eliminar.pack(pady=5)
+        self.on_eliminar = lambda rutina: None 
         tk.Button(self, text="Volver", command=controller.mostrar_menu).pack()
 
     def actualizar_lista(self, rutinas):
         self.lst.delete(0, tk.END)
-        for r in rutinas:
-            self.lst.insert(tk.END, r.nombre)
         self._rutinas = rutinas
+        for r in rutinas:
+            descripcion = f"{r.nombre} ({len(r.ejercicios)} ejercicios)"
+            self.lst.insert(tk.END, descripcion)
 
     def _realizar(self, controller):
         sel = self.lst.curselection()
@@ -109,6 +124,27 @@ class SeleccionFrame(tk.Frame):
             return
         rutina = self._rutinas[sel[0]]
         controller.mostrar_realizar(rutina)
+
+    def _mostrar_detalle(self):
+        sel = self.lst.curselection()
+        if not sel:
+            return
+        rutina = self._rutinas[sel[0]]
+        texto = "\n".join(f"- {e.nombre_ejercicio}: {e.descripcion()}" for e in rutina.ejercicios)
+        self.detalle.config(state='normal')
+        self.detalle.delete('1.0', tk.END)
+        self.detalle.insert(tk.END, texto)
+        self.detalle.config(state='disabled')
+    
+    def _eliminar(self):
+        sel = self.lst.curselection()
+        if not sel:
+            messagebox.showwarning("Atención", "Seleccione una rutina para eliminar.")
+            return
+        rutina = self._rutinas[sel[0]]
+        confirm = messagebox.askyesno("Confirmar", f"¿Deseas eliminar la rutina '{rutina.nombre}'?")
+        if confirm:
+            self.on_eliminar(rutina)
 
 class CrearFrame(tk.Frame):
     def __init__(self, parent, controller):
