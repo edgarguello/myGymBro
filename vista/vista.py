@@ -124,12 +124,14 @@ class VistaCLI:
             datos["nombre_ejercicio"] = self.pedir_texto("Nombre del ejercicio: ")
             datos["peso_maximo"] = self.pedir_float("Peso máximo (kg): ")
             datos["repeticiones"] = self.pedir_int("Repeticiones: ")
+            datos["sets"] = self.pedir_int("Cantidad de series: ")
             datos["descanso"] = self.pedir_float("Descanso (minutos): ")
 
         elif clase_modelo.__name__ == "EjercicioFuerzaDropSet":
             datos["nombre_ejercicio"] = self.pedir_texto("Nombre del ejercicio: ")
             datos["peso_maximo"] = self.pedir_float("Peso máximo inicial (kg): ")
             datos["repeticiones"] = self.pedir_int("Repeticiones iniciales: ")
+            datos["sets"] = self.pedir_int("Cantidad de series: ")
             datos["descanso"] = self.pedir_float("Descanso (minutos): ")
             datos["variacion_peso"] = self.pedir_float("Disminución de peso (kg): ")
             datos["variacion_repeticiones"] = self.pedir_int("Aumento de repeticiones: ")
@@ -314,14 +316,14 @@ class VistaCLI:
             print("█", end="", flush=True)
         print("\n")
 
-    def mostrar_ejercicio(self, ejercicio):
+    def mostrar_ejercicio(self, ejercicio,nro_set):
         """Muestra la información del ejercicio actual y lanza su temporizador si aplica.
         Args:
             ejercicio: Objeto del ejercicio a mostrar.
         """
 
         self.limpiar_pantalla()
-        print(f"➡️ Realizando: {getattr(ejercicio, 'nombre_ejercicio', 'N/A')}\n")
+        print(f"➡️ Realizando: {getattr(ejercicio, 'nombre_ejercicio', 'N/A')}" + (f" Serie Nro: {nro_set}" if nro_set is not None else "") + "\n")
         self._mostrar_detalles_ejercicio(ejercicio)
 
         if isinstance(ejercicio, EjercicioCardioHIIT):
@@ -338,24 +340,19 @@ class VistaCLI:
         
         print("📋 Detalles del ejercicio:\n")
 
-        if isinstance(ejercicio, EjercicioFuerza):
-            print("🧱 Tipo: Fuerza regular")
-            print(f"📦 Peso máximo: {ejercicio.peso_maximo} kg")
-            print(f"🔁 Repeticiones: {ejercicio.repeticiones}")
-            print(f"🕒 Descanso: {ejercicio.descanso} min")
-
-        elif isinstance(ejercicio, EjercicioFuerzaDropSet):
+        if isinstance(ejercicio, EjercicioFuerzaDropSet):
             print("🧱 Tipo: Fuerza Drop Set")
             print(f"📦 Peso inicial: {ejercicio.peso_maximo} kg")
             print(f"📉 Disminución de peso: {ejercicio.variacion_peso} kg")
             print(f"🔁 Repeticiones iniciales: {ejercicio.repeticiones}")
-            print(f"🔁 Aumento de repeticiones: {ejercicio.variacion_repeticiones}")
+            print(f"🔁 Aumento de repeticiones: {ejercicio.variacion_reps}")
             print(f"🕒 Descanso: {ejercicio.descanso} min")
 
-        elif isinstance(ejercicio, EjercicioCardio):
-            print("🏃 Tipo: Cardio regular")
-            print(f"🚶 Velocidad: {ejercicio.velocidad_regular} km/h")
-            print(f"⏱ Tiempo: {ejercicio.tiempo} min")
+        elif isinstance(ejercicio, EjercicioFuerza):
+            print("🧱 Tipo: Fuerza regular")
+            print(f"📦 Peso máximo: {ejercicio.peso_maximo} kg")
+            print(f"🔁 Repeticiones: {ejercicio.repeticiones}")
+            print(f"🕒 Descanso: {ejercicio.descanso} min") 
 
         elif isinstance(ejercicio, EjercicioCardioHIIT):
             print("🔥 Tipo: Cardio HIIT")
@@ -363,6 +360,11 @@ class VistaCLI:
             print(f"🏃 Velocidad intensa: {ejercicio.velocidad_intensa} km/h")
             print(f"🔁 Intervalo: {ejercicio.intervalo} min")
             print(f"⏱ Tiempo total: {ejercicio.tiempo} min")
+
+        elif isinstance(ejercicio, EjercicioCardio):
+            print("🏃 Tipo: Cardio regular")
+            print(f"🚶 Velocidad: {ejercicio.velocidad_regular} km/h")
+            print(f"⏱ Tiempo: {ejercicio.tiempo} min")
 
         else:
             print("⚠️ Tipo de ejercicio no reconocido.")

@@ -28,3 +28,11 @@ class Ejercicio(ABC):
         """
 
         pass
+
+    @abstractmethod
+    def estimar_calorias(self):
+        """
+        Método polimórfico que estima las calorías quemadas.
+        Cada subclase implementa su propia fórmula.
+        """
+        pass

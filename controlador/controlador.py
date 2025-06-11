@@ -83,18 +83,21 @@ class Controlador:
 
     def realizar_rutina(self, rutina):
         """
-        Ejecuta los ejercicios de una rutina, mostrando instrucciones y descansos.
+        Ejecuta los ejercicios de una rutina, mostrando instrucciones y descansos por set.
         :param rutina: Objeto de tipo Rutina a ejecutar.
         """
         self.vista.mostrar_inicio_rutina(rutina.nombre)
 
         for ejercicio in rutina.ejercicios:
-            self.vista.mostrar_ejercicio(ejercicio)
-            self.vista.esperar_fin_ejercicio()
+            sets = int(getattr(ejercicio, 'sets', 1))
 
-            descanso = getattr(ejercicio, 'descanso', None)
-            if isinstance(descanso, (int, float)) and descanso > 0:
-                self.vista.mostrar_descanso(descanso)
+            for numero_set in range(1, sets + 1):
+                self.vista.mostrar_ejercicio(ejercicio,numero_set)
+                self.vista.esperar_fin_ejercicio()
+
+                descanso = getattr(ejercicio, 'descanso', None)
+                if isinstance(descanso, (int, float)) and descanso > 0 and numero_set < sets:
+                    self.vista.mostrar_descanso(descanso)
 
         self.vista.mostrar_fin_rutina(rutina.nombre)
 
