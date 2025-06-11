@@ -19,87 +19,21 @@ class Controlador:
         """
         self.vista = vista
         self.rutinas = []
-
-    def iniciar(self):
-        """
-        Inicia el ciclo principal de la aplicación.
-        Carga las rutinas guardadas y muestra el menú principal.
-        """
         self.cargar_rutinas()
-        while True:
-            opcion = self.vista.mostrar_menu()
-            if opcion == "1":
-                self.empezar_rutina()
-            elif opcion == "2":
-                self.crear_rutina()
-            elif opcion == "3":
-                break
 
-    def crear_rutina(self):
-        """
-        Crea una nueva rutina solicitando datos desde la vista.
-        Permite agregar múltiples ejercicios a la rutina.
-        Guarda la rutina al finalizar.
-        """
-        nombre = self.vista.pedir_nombre_rutina()
+    def obtener_rutinas(self):
+        return self.rutinas
+
+    def crear_rutina(self, nombre, lista_ejercicios):
         rutina = Rutina(nombre)
-
-        while True:
-            clase_base = self.vista.seleccionar_tipo_ejercicio(rutina)
-            if clase_base is None:
-                self.vista.mostrar_mensaje("Tipo inválido.")
-                continue
-
-            clase = self.vista.seleccionar_subtipo(clase_base)
-            if clase is None:
-                self.vista.mostrar_mensaje("Subtipo inválido.")
-                continue
-
-            datos = self.vista.pedir_datos(clase)
-            ejercicio = clase(**datos)
-            rutina.agregar_ejercicio(ejercicio)
-
-            if not self.vista.preguntar_otro_ejercicio():
-                break
+        for ej in lista_ejercicios:
+            rutina.agregar_ejercicio(ej)
         self.rutinas.append(rutina)
         self.guardar_rutinas()
-        self.vista.mostrar_rutina(rutina)
-
-    def empezar_rutina(self):
-        """
-        Permite al usuario seleccionar una rutina existente para realizarla.
-        Si no hay rutinas, ofrece crear una nueva.
-        """
-        if not self.rutinas:
-            desea_crear = self.vista.preguntar_si_desea_cargar_rutina()
-            if desea_crear:
-                self.crear_rutina()
-            else:
-                return
-
-        rutina = self.vista.seleccionar_rutina(self.rutinas)
-        if rutina:
-            self.realizar_rutina(rutina)
 
     def realizar_rutina(self, rutina):
-        """
-        Ejecuta los ejercicios de una rutina, mostrando instrucciones y descansos por set.
-        :param rutina: Objeto de tipo Rutina a ejecutar.
-        """
-        self.vista.mostrar_inicio_rutina(rutina.nombre)
-
-        for ejercicio in rutina.ejercicios:
-            sets = int(getattr(ejercicio, 'sets', 1))
-
-            for numero_set in range(1, sets + 1):
-                self.vista.mostrar_ejercicio(ejercicio,numero_set)
-                self.vista.esperar_fin_ejercicio()
-
-                descanso = getattr(ejercicio, 'descanso', None)
-                if isinstance(descanso, (int, float)) and descanso > 0 and numero_set < sets:
-                    self.vista.mostrar_descanso(descanso)
-
-        self.vista.mostrar_fin_rutina(rutina.nombre)
+        # Simplemente delega a la vista RealizarFrame con rutina cargada
+        self.vista.mostrar_realizar(rutina)
 
     def guardar_rutinas(self):
         """
@@ -111,8 +45,8 @@ class Controlador:
             with open(self.ARCHIVO_RUTINAS, 'wb') as f:
                 pickle.dump(self.rutinas, f)
         except Exception as e:
-            self.vista.mostrar_mensaje(f"❌ Error al guardar las rutinas: {e}")
-    
+            self.vista.mostrar_error(f"❌ Error al guardar las rutinas: {e}")
+
     def cargar_rutinas(self):
         """
         Carga las rutinas guardadas desde un archivo utilizando pickle.
@@ -123,5 +57,65 @@ class Controlador:
                 with open(self.ARCHIVO_RUTINAS, 'rb') as f:
                     self.rutinas = pickle.load(f)
             except Exception as e:
-                self.vista.mostrar_mensaje(f"⚠️ No se pudo cargar las rutinas guardadas: {e}")
+                self.vista.mostrar_error(f"⚠️ No se pudo cargar las rutinas guardadas: {e}")
                 self.rutinas = []
+
+    def obtener_subtipos(self, tipo):
+        if tipo == "Fuerza":
+            return ["Regular", "DropSet"]
+        elif tipo == "Cardio":
+            return ["Regular", "HIIT"]
+        return []
+
+    def obtener_campos_para(self, tipo, subtipo):
+        if tipo == "Fuerza":
+            if subtipo == "Regular":
+                return ["nombre_ejercicio", "peso_maximo", "repeticiones", "sets", "descanso"]
+            elif subtipo == "DropSet":
+                return ["nombre_ejercicio", "peso_maximo", "repeticiones", "descanso", "sets", "variacion_peso", "variacion_repeticiones"]
+        elif tipo == "Cardio":
+            if subtipo == "Regular":
+                return ["nombre_ejercicio", "velocidad_regular", "tiempo"]
+            elif subtipo == "HIIT":
+                return ["nombre_ejercicio", "velocidad_regular", "velocidad_intensa", "intervalo", "tiempo"]
+        return []
+
+    def crear_ejercicio(self, tipo, subtipo, datos):
+        try:
+            if tipo == "Fuerza":
+                if subtipo == "Regular":
+                    return EjercicioFuerza(
+                        datos["nombre_ejercicio"],
+                        float(datos["peso_maximo"]),
+                        int(datos["repeticiones"]),
+                        int(datos["sets"]),
+                        int(datos["descanso"])
+                    )
+                elif subtipo == "DropSet":
+                    return EjercicioFuerzaDropSet(
+                        datos["nombre_ejercicio"],
+                        float(datos["peso_maximo"]),
+                        int(datos["repeticiones"]),
+                        int(datos["descanso"]),
+                        int(datos["sets"]),
+                        float(datos["variacion_peso"]),
+                        int(datos["variacion_repeticiones"])
+                    )
+            elif tipo == "Cardio":
+                if subtipo == "Regular":
+                    return EjercicioCardio(
+                        datos["nombre_ejercicio"],
+                        float(datos["velocidad_regular"]),
+                        int(datos["tiempo"])
+                    )
+                elif subtipo == "HIIT":
+                    return EjercicioCardioHIIT(
+                        datos["nombre_ejercicio"],
+                        float(datos["velocidad_regular"]),
+                        float(datos["velocidad_intensa"]),
+                        int(datos["intervalo"]),
+                        int(datos["tiempo"])
+                    )
+        except (ValueError, KeyError) as e:
+            self.vista.mostrar_error(f"❌ Error al crear ejercicio: {e}")
+            return None
