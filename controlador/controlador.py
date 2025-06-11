@@ -46,6 +46,11 @@ class Controlador:
                 pickle.dump(self.rutinas, f)
         except Exception as e:
             self.vista.mostrar_error(f"❌ Error al guardar las rutinas: {e}")
+    
+    def eliminar_rutina(self, rutina):
+        if rutina in self.rutinas:
+            self.rutinas.remove(rutina)
+            self.guardar_rutinas()
 
     def cargar_rutinas(self):
         """
