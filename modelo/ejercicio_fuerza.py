@@ -40,7 +40,17 @@ class EjercicioFuerza(Ejercicio):
             f"{self.sets} sets de {self.repeticiones} reps con {self.peso_maximo}kg, "
             f"descanso de {self.descanso} minuto/s"
         )
-
+    
+    def descripcion_lineas(self):
+        return [
+            f"Tipo: {self.subtipo}",
+            f"Peso: {self.peso_maximo} kg",
+            f"Series: {self.sets}",
+            f"Repeticiones por serie: {self.repeticiones}",
+            f"Descanso: {self.descanso} minuto/s"
+        ]
+    
+    
     def estimar_calorias(self):
         """
         Estima la cantidad de calorías que se generan durante el ejercicio.
@@ -77,14 +87,16 @@ class EjercicioFuerzaDropSet(EjercicioFuerza):
         self.variacion_peso = variacion_peso
         self.variacion_reps = variacion_repeticiones
 
-    def descripcion(self):
-        """
-        Devuelve una descripción textual del ejercicio de tipo drop set.
-        Returns:
-            str: Descripción del ejercicio.
-        """
-
-        return f"{self.subtipo} - {self.nombre_ejercicio}: empieza con {self.peso_maximo}kg y {self.repeticiones} reps. Disminuye {self.variacion_peso}kg, aumenta {self.variacion_reps} reps. Descanso de {self.descanso} minuto/s por {self.sets} serie/s."
+    def descripcion_lineas(self):
+        return [
+            f"Tipo: {self.subtipo}",
+            f"Peso inicial: {self.peso_maximo} kg",
+            f"Repeticiones iniciales: {self.repeticiones}",
+            f"Variación de peso: -{self.variacion_peso} kg por set",
+            f"Variación de repeticiones: +{self.variacion_reps} por set",
+            f"Series totales: {self.sets}",
+            f"Descanso entre sets: {self.descanso} minuto/s"
+        ]
 
     def estimar_calorias(self):
         """

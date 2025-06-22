@@ -32,6 +32,13 @@ class EjercicioCardio(Ejercicio):
         """
         return f"Ejercicio de cardio {self.nombre_ejercicio}: {self.tiempo} min a {self.velocidad_regular} km/h"
     
+    def descripcion_lineas(self):
+        return [
+            f"Tipo: {self.subtipo}",
+            f"Duración: {self.tiempo} min",
+            f"Velocidad: {self.velocidad_regular} km/h"
+        ]
+    
     def estimar_calorias(self):
         """
         Devuelve un estimativo de la cantidad de calorías quemadas durante el ejercicio.
@@ -76,6 +83,14 @@ class EjercicioCardioHIIT(EjercicioCardio):
 
         return f"{self.subtipo}: alternar {self.velocidad_regular}/{self.velocidad_intensa} km/h cada {self.intervalo} minuto/s por {self.tiempo} min"
     
+    def descripcion_lineas(self):
+        return [
+            f"Tipo: {self.subtipo}",
+            f"Duración total: {self.tiempo} min",
+            f"Velocidad baja: {self.velocidad_regular} km/h",
+            f"Velocidad intensa: {self.velocidad_intensa} km/h",
+            f"Intervalo de cambio: cada {self.intervalo} minuto/s"
+        ]
     
     def estimar_calorias(self):
         """
