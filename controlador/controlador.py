@@ -10,7 +10,8 @@ class Controlador:
     Se encarga de crear, iniciar, guardar y cargar rutinas.
     """
 
-    ARCHIVO_RUTINAS = os.path.join("datos", "rutinas.pkl")
+    CARPETA_DATOS = os.path.join(os.getcwd(), "datos")
+    ARCHIVO_RUTINAS = os.path.join(CARPETA_DATOS, "rutinas.pkl")
 
     def __init__(self, vista):
         """
@@ -22,9 +23,17 @@ class Controlador:
         self.cargar_rutinas()
 
     def obtener_rutinas(self):
+        """
+        Devuelve la variable rutinas
+        """
         return self.rutinas
 
     def crear_rutina(self, nombre, lista_ejercicios):
+        """
+        Crea la rutina a partir de nombre y lista de ejercicios
+        :param nombre: String que representa el nombre de la rutina
+               lista_ejercicios : vector de ejercicios declarado
+        """
         rutina = Rutina(nombre)
         for ej in lista_ejercicios:
             rutina.agregar_ejercicio(ej)
@@ -32,7 +41,10 @@ class Controlador:
         self.guardar_rutinas()
 
     def realizar_rutina(self, rutina):
-        # Simplemente delega a la vista RealizarFrame con rutina cargada
+        """
+        Invoca a la vista para realizar una rutina
+        :param rutina: Objeto que se compone de ejercicios
+        """
         self.vista.mostrar_realizar(rutina)
 
     def guardar_rutinas(self):
@@ -48,6 +60,9 @@ class Controlador:
             self.vista.mostrar_error(f"❌ Error al guardar las rutinas: {e}")
     
     def eliminar_rutina(self, rutina):
+        """
+        Elimina la rutina que selecciono el usuario
+        """
         if rutina in self.rutinas:
             self.rutinas.remove(rutina)
             self.guardar_rutinas()
