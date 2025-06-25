@@ -2,7 +2,14 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 class VistaGrafica(tk.Tk):
+    """
+    Ventana principal de la aplicación MyGymBro, que gestiona los distintos frames (pantallas) y coordina la navegación.
+    """
+    
     def __init__(self):
+        """
+        Inicializa la ventana principal, configura tamaño y estructura, y muestra el menú inicial.
+        """
         super().__init__()
         self.controlador = None  
         self.title("MyGymBro")
@@ -11,9 +18,17 @@ class VistaGrafica(tk.Tk):
         self.mostrar_menu()
 
     def set_controlador(self, controlador):
+        """
+        Asigna el controlador principal del modelo.
+        Args:
+            controlador: Instancia que gestiona la lógica del programa.
+        """
         self.controlador = controlador
 
     def _init_frames(self):
+        """
+        Inicializa y almacena las pantallas (frames) disponibles en la aplicación: Menú, Selección, Creación y Ejecución.
+        """
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
 
@@ -30,10 +45,16 @@ class VistaGrafica(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
 
     def mostrar_menu(self):
+        """
+        Muestra la pantalla principal del menú.
+        """
         self.normalizar()
         self._show_frame("MenuFrame")
 
     def mostrar_seleccionar(self):
+        """
+        Muestra la pantalla de selección de rutina, actualizando la lista disponible.
+        """
         f = self.frames["SeleccionFrame"]
         f.actualizar_lista(self.controlador.obtener_rutinas())
         f.on_eliminar = self.eliminar_rutina
@@ -41,18 +62,31 @@ class VistaGrafica(tk.Tk):
         self._show_frame("SeleccionFrame")
 
     def mostrar_crear(self):
+        """
+        Muestra el formulario para crear una nueva rutina desde cero.
+        """
         form = self.frames["CrearFrame"]
         form.limpiar()
         self.maximizar()
         self._show_frame("CrearFrame")
 
     def mostrar_realizar(self, rutina):
+        """
+        Muestra la pantalla para ejecutar una rutina.
+        Args:
+            rutina: Rutina a ejecutar.
+        """
         form = self.frames["RealizarFrame"]
         form.iniciar_rutina(rutina)
         self.normalizar()
         self._show_frame("RealizarFrame")
 
     def _show_frame(self, name):
+        """
+        Muestra en pantalla el frame correspondiente y oculta los demás.
+        Args:
+            name (str): Nombre del frame a mostrar.
+        """
         for f in self.frames.values():
             f.pack_forget() 
             f.grid_remove()
@@ -61,10 +95,18 @@ class VistaGrafica(tk.Tk):
         frame.tkraise()
     
     def eliminar_rutina(self, rutina):
+        """
+        Elimina una rutina del sistema y actualiza la lista en la vista de selección.
+        Args:
+            rutina: Rutina a eliminar.
+        """
         self.controlador.eliminar_rutina(rutina)
         self.mostrar_seleccionar()  # Refresca la lista
 
     def maximizar(self):
+        """
+        Intenta maximizar la ventana principal según el sistema operativo.
+        """
         try:
             self.state('zoomed') 
         except Exception:
@@ -74,14 +116,31 @@ class VistaGrafica(tk.Tk):
                 pass 
 
     def normalizar(self):
+        """
+        Restaura el tamaño normal de la ventana.
+        """
         self.state('normal')
 
     def mostrar_error(self, mensaje: str):
+        """
+        Muestra un mensaje de error en un cuadro de diálogo.
+        Args:
+            mensaje (str): Texto del error a mostrar.
+        """
         messagebox.showerror("Error", mensaje)
 
 
 class MenuFrame(tk.Frame):
+    """
+    Pantalla de menú principal con opciones para seleccionar, crear rutina o salir.
+    """
     def __init__(self, parent, controller):
+        """
+        Inicializa la pantalla de menú y sus botones de navegación.
+        Args:
+            parent: Contenedor padre.
+            controller: Controlador principal que gestiona los cambios de pantalla.
+        """
         super().__init__(parent)
         tk.Label(self, text="Menú Principal", font=('Arial', 18)).pack(pady=20)
         tk.Button(self, text="Seleccionar rutina", width=20,
@@ -92,7 +151,17 @@ class MenuFrame(tk.Frame):
                   command=controller.destroy).pack(pady=5)
 
 class SeleccionFrame(tk.Frame):
+    """
+    Pantalla para seleccionar una rutina existente, mostrar sus detalles y ejecutarla o eliminarla.
+    """
+
     def __init__(self, parent, controller):
+        """
+        Inicializa la pantalla de selección de rutinas y sus componentes gráficos.
+        Args:
+            parent: Contenedor padre.
+            controller: Controlador principal para manejar eventos de navegación.
+        """
         super().__init__(parent)
         tk.Label(self, text="Seleccionar Rutina", font=('Arial', 18)).pack(pady=10)
         self.lst = tk.Listbox(self)
@@ -111,6 +180,11 @@ class SeleccionFrame(tk.Frame):
         tk.Button(self, text="Volver", command=controller.mostrar_menu).pack()
 
     def actualizar_lista(self, rutinas):
+        """
+        Actualiza la lista de rutinas disponibles.
+        Args:
+            rutinas (list): Lista de rutinas a mostrar.
+        """
         self.lst.delete(0, tk.END)
         self._rutinas = rutinas
         for r in rutinas:
@@ -118,6 +192,11 @@ class SeleccionFrame(tk.Frame):
             self.lst.insert(tk.END, descripcion)
 
     def _realizar(self, controller):
+        """
+        Inicia la rutina seleccionada, si se ha hecho una selección.
+        Args:
+            controller: Controlador para mostrar la pantalla de ejecución.
+        """
         sel = self.lst.curselection()
         if not sel:
             messagebox.showwarning("Atención", "Seleccione una rutina.")
@@ -126,6 +205,9 @@ class SeleccionFrame(tk.Frame):
         controller.mostrar_realizar(rutina)
 
     def _mostrar_detalle(self):
+        """
+        Muestra una descripción detallada de los ejercicios de la rutina seleccionada.
+        """
         sel = self.lst.curselection()
         if not sel:
             return
@@ -137,6 +219,9 @@ class SeleccionFrame(tk.Frame):
         self.detalle.config(state='disabled')
     
     def _eliminar(self):
+        """
+        Solicita confirmación y elimina la rutina seleccionada si el usuario acepta.
+        """
         sel = self.lst.curselection()
         if not sel:
             messagebox.showwarning("Atención", "Seleccione una rutina para eliminar.")
@@ -147,7 +232,16 @@ class SeleccionFrame(tk.Frame):
             self.on_eliminar(rutina)
 
 class CrearFrame(tk.Frame):
+    """
+    Pantalla para crear una nueva rutina de ejercicios (de tipo fuerza o cardio).
+    """
     def __init__(self, parent, controller):
+        """
+        Inicializa el formulario de creación de rutinas con campos dinámicos según el tipo/subtipo seleccionado.
+        Args:
+            parent: Contenedor padre.
+            controller: Controlador para gestionar acciones y navegación.
+        """
         super().__init__(parent)
         self.controller = controller
 
@@ -196,6 +290,9 @@ class CrearFrame(tk.Frame):
         self.lista = []   
 
     def limpiar(self):
+        """
+        Restaura el formulario a su estado inicial para crear una nueva rutina.
+        """
         self.nombre.set("")
         self._entry.delete(0, tk.END)
         self._entry.insert(0, "Nombre de la rutina")
@@ -207,16 +304,29 @@ class CrearFrame(tk.Frame):
         self._limpiar_campos()
 
     def _clear_placeholder(self, entry):
+        """
+        Elimina el texto de marcador cuando el campo gana foco.
+        Args:
+            entry: Campo de entrada (tk.Entry) a limpiar.
+        """
         if entry.get() == "Nombre de la rutina":
             entry.delete(0, tk.END)
             entry.config(fg='white')
 
     def _set_placeholder(self, entry):
+        """
+        Restaura el marcador de texto si el campo está vacío al perder foco.
+        Args:
+            entry: Campo de entrada (tk.Entry).
+        """
         if not entry.get():
             entry.insert(0, "Nombre de la rutina")
             entry.config(fg='grey')
 
     def _on_tipo_seleccionado(self, event=None):
+        """
+        Carga los subtipos disponibles según el tipo seleccionado y limpia los campos.
+        """
         tipo = self.tipo_var.get()
         subtipos = self.controller.controlador.obtener_subtipos(tipo)
         self.subtipo_cb.config(values=subtipos)
@@ -224,6 +334,9 @@ class CrearFrame(tk.Frame):
         self._limpiar_campos()
 
     def _on_subtipo_seleccionado(self, event=None):
+        """
+        Carga dinámicamente los campos necesarios para el subtipo seleccionado.
+        """
         self._limpiar_campos()
         tipo = self.tipo_var.get()
         subtipo = self.subtipo_var.get()
@@ -237,11 +350,17 @@ class CrearFrame(tk.Frame):
         self.campos_frame.columnconfigure(1, weight=1)
 
     def _limpiar_campos(self):
+        """
+        Elimina todos los campos dinámicos actuales del formulario.
+        """
         for widget in self.campos_frame.winfo_children():
             widget.destroy()
         self.entries.clear()
 
     def _agregar(self):
+        """
+        Valida los campos y agrega un nuevo ejercicio a la rutina en construcción.
+        """
         tipo = self.tipo_var.get()
         subtipo = self.subtipo_var.get()
         if not tipo or not subtipo:
@@ -265,6 +384,9 @@ class CrearFrame(tk.Frame):
         self._limpiar_campos()
 
     def _guardar(self):
+        """
+        Guarda la rutina con los ejercicios agregados y vuelve al menú.
+        """
         nom = self.nombre.get().strip()
         if nom == "Nombre de la rutina" or not nom:
             messagebox.showwarning("Atención", "El nombre no puede estar vacío.")
@@ -279,7 +401,18 @@ class CrearFrame(tk.Frame):
         self.controller.mostrar_menu()
 
 class RealizarFrame(tk.Frame):
+    """
+    Pantalla que permite ejecutar paso a paso los ejercicios de una rutina seleccionada.
+    Incluye control de series, descansos, y visualización de progreso.
+    """
+
     def __init__(self, parent, controller):
+        """
+        Inicializa la interfaz de ejecución de rutina, con etiquetas, botones y barras de progreso.
+        Args:
+            parent: Contenedor padre.
+            controller: Controlador principal para volver al menú o manejar eventos.
+        """
         super().__init__(parent)
         self.controller = controller
 
@@ -308,9 +441,14 @@ class RealizarFrame(tk.Frame):
 
         self.rutina_terminada = False
         self.descanso_activo = False
-        self.after_id = None  # Guardamos el ID de after para cancelarlo
+        self.after_id = None  
 
     def iniciar_rutina(self, rutina):
+        """
+        Inicia la ejecución de la rutina recibida, preparando el primer ejercicio.
+        Args:
+            rutina: Rutina a ejecutar.
+        """
         self.rutina = rutina
         self.ejs = rutina.ejercicios[:]
         self.idx = 0
@@ -321,6 +459,9 @@ class RealizarFrame(tk.Frame):
         self._mostrar_actual()
 
     def _mostrar_actual(self):
+        """
+        Muestra en pantalla el ejercicio actual, incluyendo descripción y estado de series.
+        """
         if self.after_id is not None:
             self.after_cancel(self.after_id)
             self.after_id = None
@@ -351,6 +492,9 @@ class RealizarFrame(tk.Frame):
         self.btn_siguiente.config(state="normal")
 
     def _avanzar(self):
+        """
+        Avanza a la siguiente serie o ejercicio según corresponda, considerando los descansos.
+        """
         if self.descanso_activo:
             return
 
@@ -364,6 +508,11 @@ class RealizarFrame(tk.Frame):
         self._iniciar_descanso(descanso)
 
     def _iniciar_descanso(self, minutos):
+        """
+        Inicia un temporizador de descanso visual si el ejercicio lo requiere.
+        Args:
+            minutos (int): Tiempo de descanso en minutos.
+        """
         if self.after_id is not None:
             self.after_cancel(self.after_id)
             self.after_id = None
@@ -397,6 +546,12 @@ class RealizarFrame(tk.Frame):
 
 
     def _actualizar_barra(self, segundos_transcurridos, total_segundos):
+        """
+        Actualiza la barra de progreso durante el descanso.
+        Args:
+            segundos_transcurridos (int): Tiempo transcurrido.
+            total_segundos (int): Duración total del descanso.
+        """
         if not self.descanso_activo:
             return
 
@@ -413,6 +568,9 @@ class RealizarFrame(tk.Frame):
         self.after_id = self.after(1000, lambda: self._actualizar_barra(segundos_transcurridos + 1, total_segundos))
 
     def _ocultar_descanso_y_avanzar(self):
+        """
+        Oculta elementos de descanso y avanza al siguiente paso del ejercicio.
+        """
         self.progress.destroy()
         self.lbl_descanso.destroy()
 
@@ -430,6 +588,9 @@ class RealizarFrame(tk.Frame):
         self._avanzar_despues_de_descanso()
 
     def _avanzar_despues_de_descanso(self):
+        """
+        Lógica que decide si continuar con otra serie o pasar al siguiente ejercicio.
+        """
         if self.rutina_terminada:
             return
         ej = self.ejs[self.idx]

@@ -51,7 +51,7 @@ Si aparece un error relacionado a `tkinter`, asegurarse de que el instalador de 
 
 El proyecto está dividido en cuatro módulos principales, siguiendo el patrón MVC (Modelo - Vista - Controlador):
 
-### modelo/
+### modelo
 
 Contiene toda la lógica de negocio del sistema. Incluye:
 
@@ -70,7 +70,7 @@ Actúa como intermediario entre la vista y el modelo. Se encarga de:
 * Almacenar y recuperar datos usando pickle
 * Coordinar la interacción con la vista
 
-### vista/ (contenido en mygymbro\_ig.py)
+### vista/ (contenido en mygymbro_ig.py)
 
 Contiene la interfaz gráfica desarrollada con Tkinter. Incluye varias pantallas:
 
@@ -79,7 +79,7 @@ Contiene la interfaz gráfica desarrollada con Tkinter. Incluye varias pantallas
 * `CrearFrame`: formulario para crear rutinas
 * `RealizarFrame`: ejecución paso a paso de una rutina
 
-### datos/
+### datos
 
 Contiene los datos persistentes del sistema. Guarda las rutinas en un archivo binario `rutinas.pkl` utilizando pickle.
 

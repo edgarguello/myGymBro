@@ -42,6 +42,11 @@ class EjercicioFuerza(Ejercicio):
         )
     
     def descripcion_lineas(self):
+        """
+        Genera una descripción en forma de lista de líneas de texto con los detalles del ejercicio.
+        Returns:
+            list[str]: Una lista de cadenas de texto que describen el ejercicio
+        """
         return [
             f"Tipo: {self.subtipo}",
             f"Peso: {self.peso_maximo} kg",
@@ -88,6 +93,11 @@ class EjercicioFuerzaDropSet(EjercicioFuerza):
         self.variacion_reps = variacion_repeticiones
 
     def descripcion_lineas(self):
+        """
+        Genera una descripción en forma de lista de líneas de texto con los detalles del ejercicio.
+        Returns:
+            list[str]: Una lista de cadenas de texto que describen el ejercicio
+        """
         return [
             f"Tipo: {self.subtipo}",
             f"Peso inicial: {self.peso_maximo} kg",

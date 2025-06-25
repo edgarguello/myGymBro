@@ -33,6 +33,11 @@ class EjercicioCardio(Ejercicio):
         return f"Ejercicio de cardio {self.nombre_ejercicio}: {self.tiempo} min a {self.velocidad_regular} km/h"
     
     def descripcion_lineas(self):
+        """
+        Genera una descripción en forma de lista de líneas de texto con los detalles del ejercicio.
+        Returns:
+            list[str]: Una lista de cadenas de texto que describen el ejercicio
+        """
         return [
             f"Tipo: {self.subtipo}",
             f"Duración: {self.tiempo} min",
@@ -84,6 +89,11 @@ class EjercicioCardioHIIT(EjercicioCardio):
         return f"{self.subtipo}: alternar {self.velocidad_regular}/{self.velocidad_intensa} km/h cada {self.intervalo} minuto/s por {self.tiempo} min"
     
     def descripcion_lineas(self):
+        """
+        Genera una descripción en forma de lista de líneas de texto con los detalles del ejercicio.
+        Returns:
+            list[str]: Una lista de cadenas de texto que describen el ejercicio
+        """
         return [
             f"Tipo: {self.subtipo}",
             f"Duración total: {self.tiempo} min",
