@@ -306,52 +306,87 @@ class RealizarFrame(tk.Frame):
 
         tk.Button(self, text="Cancelar", command=controller.mostrar_menu).pack(pady=5)
 
+        self.rutina_terminada = False
+        self.descanso_activo = False
+        self.after_id = None  # Guardamos el ID de after para cancelarlo
+
     def iniciar_rutina(self, rutina):
         self.rutina = rutina
         self.ejs = rutina.ejercicios[:]
         self.idx = 0
         self.serie_actual = 1
+        self.rutina_terminada = False
+        self.descanso_activo = False
+        self.after_id = None
         self._mostrar_actual()
 
     def _mostrar_actual(self):
-        if self.idx < len(self.ejs):
-            ej = self.ejs[self.idx]
-            self.lbl.config(text=f"Ejercicio {self.idx+1}/{len(self.ejs)}: {ej.nombre_ejercicio}")
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
+            self.after_id = None
 
-            if hasattr(ej, "sets"):
-                total_series = ej.sets
-                self.lbl_serie.config(text=f"Serie {self.serie_actual}/{total_series}")
-            else:
-                self.lbl_serie.config(text="")
+        self.progress.pack_forget()
+        self.lbl_descanso.pack_forget()
+        self.descanso_activo = False
 
-            if hasattr(ej, "descripcion_lineas"):
-                desc_str = "\n".join(ej.descripcion_lineas())
-            else:
-                desc_str = ej.descripcion()
-            self.detalle.config(text=desc_str)
+        if self.idx >= len(self.ejs):
+            self._finalizar_rutina()
+            return
+
+        ej = self.ejs[self.idx]
+        self.lbl.config(text=f"Ejercicio {self.idx+1}/{len(self.ejs)}: {ej.nombre_ejercicio}")
+
+        if hasattr(ej, "sets"):
+            total_series = ej.sets
+            self.lbl_serie.config(text=f"Serie {self.serie_actual}/{total_series}")
         else:
-            messagebox.showinfo("¡Fin!", "Rutina completada.")
-            self.controller.mostrar_menu()
-    
+            self.lbl_serie.config(text="")
+
+        if hasattr(ej, "descripcion_lineas"):
+            desc_str = "\n".join(ej.descripcion_lineas())
+        else:
+            desc_str = ej.descripcion()
+        self.detalle.config(text=desc_str)
+
+        self.btn_siguiente.config(state="normal")
 
     def _avanzar(self):
-        if self.progress.winfo_ismapped():
-            return 
+        if self.descanso_activo:
+            return
+
+        if self.rutina_terminada:
+            return
 
         self.btn_siguiente.config(state="disabled")
 
         ej = self.ejs[self.idx]
-        self._iniciar_descanso(ej.descanso)
-
+        descanso = getattr(ej, "descanso", 0)
+        self._iniciar_descanso(descanso)
 
     def _iniciar_descanso(self, minutos):
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)
+            self.after_id = None
+
+        ej = self.ejs[self.idx]
+        es_ultima_serie = not hasattr(ej, "sets") or self.serie_actual >= ej.sets
+        es_ultimo_ejercicio = self.idx == len(self.ejs) - 1
+
         if minutos == 0:
-            self._avanzar_despues_de_descanso()
+            if es_ultimo_ejercicio and es_ultima_serie:
+                self._avanzar_despues_de_descanso()
+                return
+
+            self.progress.pack()
+            self.lbl_descanso.pack()
+            self.progress["maximum"] = 1
+            self.progress["value"] = 1
+            self.lbl_descanso.config(text="DESCANSA - 0 seg")
+            self.descanso_activo = True
+            self.after_id = self.after(1000, self._ocultar_descanso_y_avanzar)
             return
 
-        self.descanso_activo = True  # Activo el flag
-
-        # solo para las pruebas se establece el total de segundos igual a 2
+        self.descanso_activo = True
         total_segundos = 2
 
         self.progress.pack()
@@ -362,8 +397,7 @@ class RealizarFrame(tk.Frame):
 
 
     def _actualizar_barra(self, segundos_transcurridos, total_segundos):
-        if not getattr(self, "descanso_activo", False):
-            # Descanso no activo, no actualizamos ni mostramos barra
+        if not self.descanso_activo:
             return
 
         segundos_restantes = total_segundos - segundos_transcurridos
@@ -371,21 +405,33 @@ class RealizarFrame(tk.Frame):
         if segundos_restantes <= 0:
             self.progress["value"] = total_segundos
             self.lbl_descanso.config(text="DESCANSA - 0 seg")
-            self.descanso_activo = False  # Fin del descanso
-            self.after(1000, self._avanzar_despues_de_descanso)
+            self.after_id = self.after(1000, self._ocultar_descanso_y_avanzar)
             return
 
         self.progress["value"] = segundos_transcurridos
         self.lbl_descanso.config(text=f"DESCANSA - {segundos_restantes} seg")
-        self.after(1000, lambda: self._actualizar_barra(segundos_transcurridos + 1, total_segundos))
+        self.after_id = self.after(1000, lambda: self._actualizar_barra(segundos_transcurridos + 1, total_segundos))
 
+    def _ocultar_descanso_y_avanzar(self):
+        self.progress.destroy()
+        self.lbl_descanso.destroy()
 
-    def _avanzar_despues_de_descanso(self):
-        self.descanso_activo = False  # Por si acaso
-
+        self.progress = ttk.Progressbar(self, orient="horizontal", length=300, mode="determinate")
+        self.progress["value"] = 0
+        self.progress.pack(pady=5)
         self.progress.pack_forget()
+
+        self.lbl_descanso = tk.Label(self, text="", font=('Arial', 16), fg="red")
+        self.lbl_descanso.pack(pady=5)
         self.lbl_descanso.pack_forget()
 
+        self.descanso_activo = False
+        self.after_id = None
+        self._avanzar_despues_de_descanso()
+
+    def _avanzar_despues_de_descanso(self):
+        if self.rutina_terminada:
+            return
         ej = self.ejs[self.idx]
         if hasattr(ej, "sets") and self.serie_actual < ej.sets:
             self.serie_actual += 1
@@ -393,5 +439,18 @@ class RealizarFrame(tk.Frame):
             self.idx += 1
             self.serie_actual = 1
 
+        if self.idx >= len(self.ejs):
+            self._finalizar_rutina()
+            return
         self._mostrar_actual()
-        self.btn_siguiente.config(state="normal")
+
+
+    def _finalizar_rutina(self):
+        """
+        Finaliza la rutina actual, muestra calorías estimadas y vuelve al menú.
+        """
+        self.rutina_terminada = True
+        total_calorias = self.controller.controlador.calorias_estimadas_rutina(self.rutina)
+        messagebox.showinfo("¡Fin!", f"Rutina completada.\n🔥 Calorías estimadas: {total_calorias:.2f} kcal")
+        self.controller.mostrar_menu()
+        self.btn_siguiente.config(state="disabled")

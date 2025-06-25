@@ -124,3 +124,12 @@ class Controlador:
         except (ValueError, KeyError) as e:
             self.vista.mostrar_error(f"❌ Error al crear ejercicio: {e}")
             return None
+    def calorias_estimadas_rutina(self, rutina):
+        """
+        Calcula el total de calorías estimadas de una rutina completa.
+        Args:
+            rutina (Rutina): Rutina a evaluar.
+        Returns:
+            float: Calorías estimadas totales.
+        """
+        return sum(ej.estimar_calorias() for ej in rutina.ejercicios)
